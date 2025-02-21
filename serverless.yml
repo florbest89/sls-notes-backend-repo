@@ -1,0 +1,49 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: florbest89
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: sls-notes-backend
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-2
+  stage: prod
+  memorySize: 128
+  timeout: 5
+  endpointType: regional
+  environment:
+    NOTES_TABLE: ${self:service}-${opt:stage, self:provider.stage} # self:service >> service name in our case is sls-notes-backend, opt:stage provided in command line, self:provider.stage >> stage name in our case is prod
+
+resources:
+  Resources:
+    NotesTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain # Retain the table even if the stack is deleted
+      Properties:
+        TableName: ${self:provider.environment.NOTES_TABLE}
+        AttributeDefinitions:
+          - AttributeName: user_id
+            AttributeType: S # S is for string
+          - AttributeName: timestamp
+            AttributeType: N # N is for number
+          - AttributeName: note_id
+            AttributeType: S
+        KeySchema: # Primary key for the table
+          - AttributeName: user_id
+            KeyType: HASH # Partition key
+          - AttributeName: timestamp
+            KeyType: RANGE # Sort key
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        GlobalSecondaryIndexes: # Indexes for querying by note_id
+          - IndexName: NotesIndex
+            KeySchema:
+              - AttributeName: note_id
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL # All attributes are projected to the index
+            ProvisionedThroughput: # Provisioned throughput for the index
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
