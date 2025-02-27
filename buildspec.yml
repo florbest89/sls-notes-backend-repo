@@ -16,6 +16,7 @@ phases:
   build:
     commands:
       - echo Deployments started on `date`
+      - echo "ENV_NAME is set to: $ENV_NAME"
       - echo Deploying with the Serverless Framework
       - serverless deploy -v -s $ENV_NAME --debug
   post_build:
