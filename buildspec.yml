@@ -20,7 +20,7 @@ phases:
   build:
     commands:
       - echo "Deployments started on $(date)"
-      - bash -c 'if [ -z "$ENV_NAME" ]; then echo "ERROR: ENV_NAME is not set!"; exit 1; fi'
+      - '[[ -z "$ENV_NAME" ]] && echo "ERROR: ENV_NAME is not set!" && exit 1 || echo "ENV_NAME is set to: $ENV_NAME"' # Check if ENV_NAME is set
       - echo "ENV_NAME is set to: $ENV_NAME"
       - echo "Deploying with the Serverless Framework..."
       - npx serverless deploy -v -s "$ENV_NAME" --debug || { echo "Deployment failed!"; exit 1; }
