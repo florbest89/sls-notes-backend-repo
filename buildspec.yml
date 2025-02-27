@@ -1,3 +1,27 @@
+# version: 0.2
+
+# phases:
+#   install:
+#     runtime-versions:
+#       nodejs: 18 # Ensure correct Node.js version
+#     commands:
+#       - echo Installing Serverless...
+#       - npm install -g serverless
+#   pre_build:
+#     commands:
+#       - echo Serverless version
+#       - serverless --version
+#       - echo Install source NPM dependencies
+#       - npm install
+#   build:
+#     commands:
+#       - echo Deployments started on `date`
+#       - echo ENV_NAME is set to: $ENV_NAME
+#       - echo Deploying with the Serverless Framework
+#       - serverless deploy -v -s $ENV_NAME --debug
+#   post_build:
+#     commands:
+#       - echo Deployment completed on `date`
 version: 0.2
 
 phases:
@@ -5,20 +29,26 @@ phases:
     runtime-versions:
       nodejs: 18 # Ensure correct Node.js version
     commands:
-      - echo Installing Serverless...
-      - npm install -g serverless
+      - echo "Installing Serverless..."
+      - npm install -g serverless # Install Serverless globally
+      - echo "Verifying AWS credentials..."
+      - aws sts get-caller-identity || { echo "AWS authentication failed!"; exit 1; }
+
   pre_build:
     commands:
-      - echo Serverless version
-      - serverless --version
-      - echo Install source NPM dependencies
+      - echo "Serverless version:"
+      - serverless --version || { echo "Serverless installation failed!"; exit 1; }
+      - echo "Installing source NPM dependencies..."
       - npm install
+
   build:
     commands:
-      - echo Deployments started on `date`
+      - echo "Deployments started on $(date)"
+      - if [ -z "$ENV_NAME" ]; then echo "ERROR: ENV_NAME is not set!"; exit 1; fi
       - echo "ENV_NAME is set to: $ENV_NAME"
-      - echo Deploying with the Serverless Framework
-      - serverless deploy -v -s $ENV_NAME --debug
+      - echo "Deploying with the Serverless Framework..."
+      - npx serverless deploy -v -s "$ENV_NAME" --debug || { echo "Deployment failed!"; exit 1; }
+
   post_build:
     commands:
-      - echo Deployment completed on `date`
+      - echo "Deployment completed on $(date)"
