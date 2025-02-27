@@ -2,11 +2,15 @@ version: 0.2
 
 phases:
   install:
+    runtime-versions:
+      nodejs: 18 # Ensure correct Node.js version
     commands:
       - echo Installing Serverless...
       - npm install -g serverless
   pre_build:
     commands:
+      - echo Serverless version
+      - serverless --version
       - echo Install source NPM dependencies
       - npm install
   build:
